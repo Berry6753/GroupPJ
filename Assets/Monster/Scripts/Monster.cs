@@ -216,7 +216,9 @@ public class Monster : MonoBehaviour
         {
             owner.state = State.Attack;
 
-            owner.transform.LookAt(owner.monsterSight.target);
+            
+            float y = Mathf.Lerp(owner.transform.position.y, owner.monsterSight.target.position.y, Time.deltaTime * 1f);
+            owner.transform.eulerAngles = new Vector3(owner.transform.eulerAngles.x, y, owner.transform.eulerAngles.z);
 
             owner.animator.SetBool(owner.hashWalk, false);
             owner.animator.SetBool(owner.hashAttack, true);
