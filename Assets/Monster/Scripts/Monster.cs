@@ -28,6 +28,7 @@ public class Monster : MonoBehaviour
 
     private readonly int hashWalk = Animator.StringToHash("Move");
     private readonly int hashLookAround = Animator.StringToHash("LookAround");
+    private readonly int hashAttack = Animator.StringToHash("Attack");
 
     private float timer;
 
@@ -103,7 +104,7 @@ public class Monster : MonoBehaviour
             owner.animator.SetBool(owner.hashWalk, false);
         }
     }
-
+    
     private class PatrolState : BaseMonstgerState
     {
         List<Transform> PatrolPoint;
@@ -214,7 +215,11 @@ public class Monster : MonoBehaviour
         public override void Enter()
         {
             owner.state = State.Attack;
-            //owner.animator.SetBool(owner.hashAttack, true);
+
+            owner.transform.LookAt(owner.monsterSight.target);
+
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashAttack, true);
         }
     }
 }
