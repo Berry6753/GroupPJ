@@ -11,19 +11,19 @@ public class Gun : MonoBehaviour
 
     public int damage;  // 총의 데미지
 
-    public int reloatdBulletCount;  // 총알 재장전 개수
+    public int reloadBulletCount;  // 총알 재장전 개수
     public int currentBulletCount;  // 현재 탄알집에 남아있는 총알의 개수
     public int maxBulletCount;  // 최대 소유 가능 총알 개수
     public int carryBulletCount;    // 현재 소유하고 있는 총알 개수
 
-    public float retroActionForce;  // 반동 세기
     public float retroActionFineSignForce;  // 정조준시의 반동 세기
 
-    public Vector3 fineSignoriginPos;
+    public Vector3 fineSightoriginPos;
 
     public Animator anim;
 
     public ParticleSystem muzzleFlash;  // 총구섬광
 
     public AudioClip fire_Sound;
+    public AudioClip empty_Sound;
 }
