@@ -26,8 +26,8 @@ public class Monster : MonoBehaviour
 
     private View monsterSight;
 
-    private readonly int hashTrace = Animator.StringToHash("Move");
-    //private readonly int hashAttack = Animator.StringToHash("isAttack");
+    private readonly int hashWalk = Animator.StringToHash("Move");
+    private readonly int hashLookAround = Animator.StringToHash("LookAround");
 
     private float timer;
 
@@ -100,7 +100,7 @@ public class Monster : MonoBehaviour
         {
             owner.state = State.Idle;
             owner.agent.isStopped = true;
-            owner.animator.SetBool(owner.hashTrace, false);
+            owner.animator.SetBool(owner.hashWalk, false);
         }
     }
 
@@ -121,7 +121,7 @@ public class Monster : MonoBehaviour
         {
             owner.state = State.Patrol;
             owner.agent.isStopped = false;
-            owner.animator.SetBool(owner.hashTrace, true);
+            owner.animator.SetBool(owner.hashWalk, true);
             
             targetPos = PatrolPoint[patrolPointIndex].position;
         }
@@ -165,7 +165,7 @@ public class Monster : MonoBehaviour
             owner.state = State.Trace;
             targetPos = owner.monsterSight.target.position;
             owner.agent.isStopped = false;
-            owner.animator.SetBool(owner.hashTrace, true);
+            owner.animator.SetBool(owner.hashWalk, true);
         }
 
         public override void Update()
@@ -184,7 +184,8 @@ public class Monster : MonoBehaviour
 
             owner.state = State.LookAround;
             owner.agent.isStopped = true;
-            owner.animator.SetBool(owner.hashTrace, false);
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashLookAround, true);
             //owner.animator.SetBool(owner.hashAttack, true);
         }
 
@@ -200,7 +201,8 @@ public class Monster : MonoBehaviour
         }
 
         public override void Exit()
-        {            
+        {
+            owner.animator.SetBool(owner.hashLookAround, false);
             Debug.Log($"주위 감지 종료, 지난 시간 : {owner.timer}, 종료 지정 시간 : {EndTime}");
             owner.timer = 0;
         }
