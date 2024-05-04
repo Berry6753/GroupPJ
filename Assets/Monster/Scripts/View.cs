@@ -11,9 +11,15 @@ public class View : MonoBehaviour
     [SerializeField] private LayerMask targetMask;
     [SerializeField] private Transform Eyes;
 
+    public Transform target {  get; private set; }
+
     public bool isFind {  get; private set; }
+    public bool isAttackAble { get; private set; }
 
     private NavMeshAgent agent;
+
+    [SerializeField]
+    private float AttackDistance;
     
     private void Awake()
     {
@@ -42,8 +48,8 @@ public class View : MonoBehaviour
         Vector3 leftBoundary = BoundarAngle(-viewAngle * 0.5f);
         Vector3 rightBoundary = BoundarAngle(viewAngle * 0.5f);
 
-        Debug.DrawRay(transform.position, leftBoundary, Color.red);
-        Debug.DrawRay(transform.position, rightBoundary, Color.red);
+        Debug.DrawRay(Eyes.position, leftBoundary, Color.red);
+        Debug.DrawRay(Eyes.position, rightBoundary, Color.red);
 
         Collider[] target = Physics.OverlapSphere(Eyes.position, viewDistance, targetMask);
 
@@ -55,21 +61,35 @@ public class View : MonoBehaviour
 
             if (angle <= viewAngle * 0.5f)
             {
-                Debug.DrawRay(transform.position + Eyes.forward, direction, Color.blue);
+                Debug.DrawRay(Eyes.position, direction, Color.blue);
                 if (Physics.Raycast(Eyes.transform.position, direction, out RaycastHit hit, viewDistance))
                 {
-                    Debug.Log(hit.transform.name);
                     if (hit.transform.CompareTag("Player"))
                     {
                         isFind = true;
-                        agent.destination = hit.transform.position;
+                        this.target = hit.transform;
+                        //agent.destination = hit.transform.position;
+                        if(Vector3.Distance(transform.position, hit.transform.position) <= AttackDistance)
+                        {
+                            isAttackAble = true;
+                        }
+                        else
+                        {
+                            isAttackAble = false;
+                        }
                     }
                 }
                 else
                 {
                     isFind = false;
+                    isAttackAble = false;
                 }
             }
+        }
+        else
+        {
+            isFind = false;
+            isAttackAble = false;
         }
     }
 }
