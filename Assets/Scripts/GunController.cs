@@ -19,12 +19,14 @@ public class GunController : MonoBehaviour
 
     
     [SerializeField] private Camera cam;
+    private Crosshair crosshair;
 
     [SerializeField] private GameObject hit_effect_prefab;
 
     private void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        crosshair = FindObjectOfType<Crosshair>();
     }
 
     void Update()
@@ -78,6 +80,7 @@ public class GunController : MonoBehaviour
         currentFireRate = gun.fireRate; //연사속도 재계산
         gun.currentBulletCount--;
         Hit();
+        crosshair.FireAnimation();
 
         StopAllCoroutines();
         StartCoroutine(RetroAction());
@@ -85,7 +88,10 @@ public class GunController : MonoBehaviour
 
     private void Hit()
     {
-        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, gun.range))
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward +
+            new Vector3(Random.Range(-crosshair.GetAccuracy() - gun.accuracy, crosshair.GetAccuracy() + gun.accuracy),
+            Random.Range(-crosshair.GetAccuracy() - gun.accuracy, crosshair.GetAccuracy() + gun.accuracy), 0f)
+            , out hit, gun.range))
         {
             GameObject clone = Instantiate(hit_effect_prefab, hit.point, Quaternion.LookRotation(hit.normal));
             Debug.Log(hit.transform.name);
