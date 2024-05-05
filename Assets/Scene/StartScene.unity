@@ -406,6 +406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentType: 2
+  buttonScale: {fileID: 1580359287}
 --- !u!1 &573104649
 GameObject:
   m_ObjectHideFlags: 0
@@ -783,6 +784,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentType: 0
+  buttonScale: {fileID: 1388710888}
 --- !u!1 &1136714324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1143,6 +1145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentType: 1
+  buttonScale: {fileID: 1258052515}
 --- !u!1 &1285768933
 GameObject:
   m_ObjectHideFlags: 0
@@ -1443,7 +1446,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4fc6715cfd31704da822b98b124d5ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentType: 0
 --- !u!1 &1458094122
 GameObject:
   m_ObjectHideFlags: 0
@@ -2109,6 +2111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentType: 5
+  buttonScale: {fileID: 1823356989}
 --- !u!1 &2106480972
 GameObject:
   m_ObjectHideFlags: 0
