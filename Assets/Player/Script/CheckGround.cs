@@ -10,6 +10,7 @@ public class CheckGround : MonoBehaviour
         if (other.CompareTag("Ground"))
         {
             PlayerController.Instance.isGround = true;
+            PlayerController.Instance.playerAnimator.SetBool("IsGround", PlayerController.Instance.isGround);
             Debug.Log("a");
         }
     }
