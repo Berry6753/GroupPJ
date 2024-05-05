@@ -1,7 +1,11 @@
 using PolyPerfect;
 using System.Collections;
 using System.Collections.Generic;
+<<<<<<< Updated upstream
 using System.Drawing;
+=======
+using System.Runtime.InteropServices;
+>>>>>>> Stashed changes
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -20,6 +24,7 @@ public class Boss : MonoBehaviour
 
     public State state = State.Idle;
 
+<<<<<<< Updated upstream
     private NavMeshAgent agent;
     private Animator animator;
     private StateMachine stateMachine;
@@ -47,20 +52,48 @@ public class Boss : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+=======
+    private Animator animator;
+    private NavMeshAgent agent;
+    public StateMachine stateMachine;
+
+    private View BossSight;
+
+    [SerializeField]
+    private Transform PatrolPointGroup;
+
+    private List<Transform> PatrolPoint;
+
+    private void Awake()
+    {
+        PatrolPoint = new List<Transform>();
+
+        for (int i = 0; i < PatrolPointGroup.childCount; i++)
+        {
+            PatrolPoint.Add(PatrolPointGroup.GetChild(i));
+        }
+
+        animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
+>>>>>>> Stashed changes
         BossSight = GetComponent<View>();
 
         stateMachine = gameObject.AddComponent<StateMachine>();
         stateMachine.AddState(State.Idle, new IdleState(this));
+<<<<<<< Updated upstream
         stateMachine.AddState(State.Patrol, new PatrolState(this));
         stateMachine.AddState(State.LookAround, new LookAroundState(this));
         stateMachine.AddState(State.Run, new RunState(this));
         stateMachine.AddState(State.Assassinated, new AssassinatedState(this));
         stateMachine.AddState(State.Hurt, new HurtState(this));
         stateMachine.AddState(State.Die, new DieState(this));
+=======
+>>>>>>> Stashed changes
 
         stateMachine.InitState(State.Idle);
     }
 
+<<<<<<< Updated upstream
     private void Start()
     {
         StartCoroutine(CheckState());
@@ -133,6 +166,16 @@ public class Boss : MonoBehaviour
     }
 
     private class IdleState : BaseMonstgerState
+=======
+    private class BaseMonsterState : BaseState
+    {
+        protected Boss owner;
+
+        public BaseMonsterState(Boss owner) { this.owner = owner; }
+    }
+
+    private class IdleState : BaseMonsterState
+>>>>>>> Stashed changes
     {
         public IdleState(Boss owner) : base(owner) { }
 
@@ -140,6 +183,7 @@ public class Boss : MonoBehaviour
         {
             owner.state = State.Idle;
             owner.agent.isStopped = true;
+<<<<<<< Updated upstream
             owner.animator.SetBool(owner.hashWalk, false);
 
             owner.agent.speed = 3.5f;
@@ -150,11 +194,20 @@ public class Boss : MonoBehaviour
     private class PatrolState : BaseMonstgerState
     {
 
+=======
+
+        }
+    }
+
+    private class PatrolState : BaseMonsterState
+    {
+>>>>>>> Stashed changes
         public PatrolState(Boss owner) : base(owner) { }
 
         public override void Enter()
         {
             owner.state = State.Patrol;
+<<<<<<< Updated upstream
             owner.agent.isStopped = false;
             owner.animator.SetBool(owner.hashWalk, true);
             owner.animator.SetBool(owner.hashFind, false);
@@ -248,11 +301,28 @@ public class Boss : MonoBehaviour
     }
 
     private class AssassinatedState : BaseMonstgerState
+=======
+        }
+    }
+
+    private class RunState : BaseMonsterState
+    {
+        public RunState(Boss owner) : base(owner) { }
+
+        public override void Enter()
+        {
+            owner.state = State.Run;
+        }
+    }
+
+    private class AssassinatedState : BaseMonsterState
+>>>>>>> Stashed changes
     {
         public AssassinatedState(Boss owner) : base(owner) { }
         public override void Enter()
         {
             owner.state = State.Assassinated;
+<<<<<<< Updated upstream
             owner.agent.isStopped = true;
 
             owner.animator.SetBool(owner.hashWalk, false);
@@ -262,11 +332,18 @@ public class Boss : MonoBehaviour
     }
 
     private class HurtState : BaseMonstgerState
+=======
+        }
+    }
+
+    private class HurtState : BaseMonsterState
+>>>>>>> Stashed changes
     {
         public HurtState(Boss owner) : base(owner) { }
         public override void Enter()
         {
             owner.state = State.Hurt;
+<<<<<<< Updated upstream
             owner.agent.isStopped = true;
             owner.isHurt = true;
 
@@ -280,10 +357,17 @@ public class Boss : MonoBehaviour
     }
 
     private class DieState : BaseMonstgerState
+=======
+        }
+    }
+
+    private class DieState : BaseMonsterState
+>>>>>>> Stashed changes
     {
         public DieState(Boss owner) : base(owner) { }
         public override void Enter()
         {
+<<<<<<< Updated upstream
             owner.agent.isStopped = true;
             owner.transform.tag = "Dead";
 
@@ -292,6 +376,9 @@ public class Boss : MonoBehaviour
             owner.animator.SetTrigger(owner.hashDie);
 
             Debug.Log("ав╢ы.");
+=======
+            owner.state = State.Die;
+>>>>>>> Stashed changes
         }
     }
 }
