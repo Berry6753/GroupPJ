@@ -4,7 +4,20 @@ using UnityEngine;
 
 public class Boss : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public enum State
+    {
+        Idle,
+        Patrol,
+        Run,
+        Assassinated,
+        Hurt,
+        Die
+    }
+
+    public State state = State.Idle;
+
+
+    
     void Start()
     {
         
