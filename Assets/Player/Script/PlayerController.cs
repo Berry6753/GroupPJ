@@ -5,15 +5,27 @@ using UnityEngine.InputSystem;
 
 public enum PlayerStateName
 {
-    IDLE, WALK, RUN, CROUCHING, CROUCHINGWALK,
+    IDLE, WALK, ASSASING
 }
+
+public enum PlayerAttackType
+{
+    NOMAL,ASSASING,AIMMING
+}
+
 
 public class PlayerController : Singleton<PlayerController>
 {
     public float moveSpeed;
+    public bool isAssasing;
     public bool isGround = true;
 
+    [HideInInspector]
+    public GameObject target;
+    [HideInInspector]
+    public Animator playerAnimator;
     public PlayerStateName playerState = PlayerStateName.IDLE;
+    public GameObject assasingPos;
     protected CharacterController characterController;
 
     [SerializeField]
@@ -24,8 +36,7 @@ public class PlayerController : Singleton<PlayerController>
     private StateMachine playerStateMachine;
     private Vector3 moveDirection;
     private Vector3 jumpDirection = new Vector3(0, 0, 0);
-    private Animator playerAnimator;
-
+    private PlayerAttackType attackType = PlayerAttackType.NOMAL;
 
     private float jumpForce = 3.0f;
     private float gravtyScale = -0.02f;
@@ -37,6 +48,8 @@ public class PlayerController : Singleton<PlayerController>
     private bool isJump = false;
     private bool isAttack = false;
     private bool isAimming = false;
+    private bool isAssasingAttack = false;
+
 
 
     private void Start()
@@ -48,6 +61,8 @@ public class PlayerController : Singleton<PlayerController>
         playerStateMachine.AddState(PlayerStateName.WALK, new WalkState(this));
         playerStateMachine.InitState(PlayerStateName.IDLE);
 
+        leftHandAttackPos.SetActive(false);
+        rightHandAttackPos.SetActive(false);
         jumpDirection.y = jumpForce;
     }
 
@@ -72,31 +87,112 @@ public class PlayerController : Singleton<PlayerController>
         AttackingTimeCheck();
     }
 
+    void OnCrouching()
+    {
+        if (!isAssasingAttack)
+        {
+            if (!isCrouching)
+            {
+                isCrouching = true;
+                moveSpeed = 1.0f;
+                //애니세팅
+                playerAnimator.SetBool("IsCrouching", true);
+                //앉기일 경우 0, 0.49 ,0
+                characterController.center = new Vector3(0, 0.49f, 0);
+                //높이 1
+                characterController.height = 1;
+
+            }
+            else
+            {
+                isCrouching = false;
+                moveSpeed = 1.0f;
+                //애니세팅
+                playerAnimator.SetBool("IsCrouching", false);
+                //캐릭터 컨트롤러 콜리전 세팅 센터값 0 , 0.99 ,0
+                characterController.center = new Vector3(0, 0.99f, 0);
+                //높이 1.8
+                characterController.height = 1.8f;
+            }
+
+        }
+
+
+
+    }
+
+    private void onAssasing()
+    {
+        target.transform.position = assasingPos.transform.position;
+    }
+
     private void OnAttack()
+    {
+
+        switch (attackType)
+        {
+            case PlayerAttackType.NOMAL:
+                NomalAttack();
+                break;
+            case PlayerAttackType.ASSASING:
+                break;
+            case PlayerAttackType.AIMMING:
+                break;
+        }
+
+    }
+
+
+
+    private void AssaingAttack()
+    {
+
+    }
+
+    private void NomalAttack()
     {
         isAttack = true;
         playerAnimator.SetLayerWeight(1, 1);
         playerAnimator.SetBool("IsAttack", true);
         attackTime = Time.time;
-        if (!isAimming)
+
+        if (Time.time - attackTime <= maxComboInputTime)
         {
-            if (Time.time - attackTime <= maxComboInputTime)
+            if (comboCount == 0)
             {
-                if (comboCount == 0)
-                {
-                    playerAnimator.SetTrigger("LeftAttack");
-                    comboCount++;
-                }
-                else if (comboCount == 1)
-                {
-                    playerAnimator.SetTrigger("RightAttack");
-                    comboCount--;
-                }
+                playerAnimator.SetTrigger("LeftAttack");
+                comboCount++;
+            }
+            else if (comboCount == 1)
+            {
+                playerAnimator.SetTrigger("RightAttack");
+                comboCount--;
             }
         }
+    }
 
+    public void LeftAttack()
+    {
+        if (leftHandAttackPos.activeSelf == false)
+        {
+            leftHandAttackPos.SetActive(true);
+        }
+        else
+        {
+            leftHandAttackPos.SetActive(false);
+        }
+    }
 
-
+    public void RightAttack()
+    {
+        if (rightHandAttackPos.activeSelf == false)
+        {
+            rightHandAttackPos.SetActive(true);
+        }
+        else
+        {
+            rightHandAttackPos.SetActive(false);
+        }
     }
 
     private void AttackingTimeCheck()
@@ -116,6 +212,7 @@ public class PlayerController : Singleton<PlayerController>
         if (isGround)
         {
             isGround = false;
+            playerAnimator.SetBool("IsGround", isGround);
         }
 
     }
@@ -155,10 +252,8 @@ public class PlayerController : Singleton<PlayerController>
             player.playerState = PlayerStateName.IDLE;
             //애니메이션 세팅
             player.SetAnimatorFloat(0, 0);
-            //캐릭터 컨트롤러 콜리전 세팅 센터값 0 , 0.99 ,0
-            //높이 1.8
-            //앉기일 경우 0, 0.49 ,0
-            //높이 1
+            
+            
         }
 
         public override void Update()
@@ -181,7 +276,11 @@ public class PlayerController : Singleton<PlayerController>
         public override void Update()
         {
             player.characterController.Move(player.moveDirection * player.moveSpeed * Time.deltaTime);
-            player.SetAnimatorFloat(player.moveDirection.x * player.moveSpeed, player.moveDirection.z * player.moveSpeed);
+            if (player.isGround)
+            {
+                player.SetAnimatorFloat(player.moveDirection.x * player.moveSpeed, player.moveDirection.z * player.moveSpeed);
+
+            }
 
 
             if (player.characterController.velocity.magnitude == 0)
@@ -189,6 +288,11 @@ public class PlayerController : Singleton<PlayerController>
                 player.playerStateMachine.ChangeState(PlayerStateName.IDLE);
             }
         }
+    }
+
+    private class AssasingState : PlayerBaseState
+    {
+        public AssasingState(PlayerController player) : base(player) { }
     }
 
 }
