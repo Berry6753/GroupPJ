@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 26bedcafbec57764a93ab3339ccc399b
+guid: f7ec0cee6cda0324daac3e569682fc47
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable:
@@ -437,13 +437,10 @@ ModelImporter:
     second: root
   - first:
       74: 7400000
-    second: Death_Fwd
+    second: HG_Idle_Pose
   - first:
       95: 9500000
     second: //RootNode
-  - first:
-      41386430: 2186277476908879412
-    second: ImportLogs
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -457,19 +454,11 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
+    rigImportErrors: "Invalid copied Avatar Rig Configuration:\n\tNo human bone found.
+      Ensure both rig type match\n"
     rigImportWarnings: 
     animationImportErrors: 
-    animationImportWarnings: "\nClip 'Scene' has import animation warnings that might
-      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
-      retargeting quality.\n\t'spine_02' has translation animation that will be discarded.\n\t'spine_02'
-      has scale animation that will be discarded.\n\t'spine_03' has translation animation
-      that will be discarded.\n\t'spine_03' has scale animation that will be discarded.\n\t'neck_02'
-      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'thigh_l'
-      has scale animation that will be discarded.\n\t'calf_l' has scale animation
-      that will be discarded.\n\t'foot_l' has scale animation that will be discarded.\n\t'thigh_r'
-      has scale animation that will be discarded.\n\t'calf_r' has scale animation
-      that will be discarded.\n\t'foot_r' has scale animation that will be discarded.\n"
+    animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -483,22 +472,22 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Death_Fwd
+      name: HG_Idle_Pose
       takeName: Scene
       internalID: 7400000
       firstFrame: 0
-      lastFrame: 35
+      lastFrame: 1
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 1
-      loopBlendPositionXZ: 0
+      loopBlendPositionXZ: 1
       keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
@@ -1351,7 +1340,7 @@ ModelImporter:
     feetSpacing: 0
     globalScale: 1
     rootMotionBoneName: 
-    hasTranslationDoF: 0
+    hasTranslationDoF: 1
     hasExtraRoot: 1
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: db0e58d0841b90c478cc919c554c298c, type: 3}
