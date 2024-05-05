@@ -81,15 +81,23 @@ public class View : MonoBehaviour
                 }
                 else
                 {
-                    isFind = false;
-                    isAttackAble = false;
+                    MissTarget();
                 }
+            }
+            else
+            {
+                MissTarget();
             }
         }
         else
         {
-            isFind = false;
-            isAttackAble = false;
+            MissTarget();
         }
+    }
+
+    private void MissTarget()
+    {
+        isFind = false;
+        isAttackAble = false;
     }
 }
