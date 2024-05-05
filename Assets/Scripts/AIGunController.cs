@@ -49,8 +49,7 @@ public class AIGunController : MonoBehaviour
             gun.muzzleFlash.Play();
             PlaySE(gun.fire_Sound);
             currentFireRate = gun.fireRate; //연사속도 재계산
-            //laserLine.SetPosition(0, laserStartPos.position);
-            laserLine.SetPosition(0, Vector3.zero);
+            laserLine.SetPosition(0, laserStartPos.position);
             Hit();
         }
     }
