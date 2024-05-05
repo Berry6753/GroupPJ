@@ -92,18 +92,6 @@ public class Monster : MonoBehaviour
     private void Start()
     {
         StartCoroutine(CheckMonsterState());
-        StartCoroutine(aa());
-    }
-
-    IEnumerator aa()
-    {
-        while (!isDead)
-        {
-            yield return new WaitForSeconds(3f);
-            Hurt(50f);
-        }
-
-        yield break;
     }
 
     private IEnumerator CheckMonsterState()
@@ -243,10 +231,9 @@ public class Monster : MonoBehaviour
 
         public override void FixedUpdate()
         {
+            Debug.Log("패트롤 중...");
             ChangePatrolPoint();
             owner.agent.SetDestination(targetPos);
-
-            Debug.Log("패트롤 중...");
         }
     }
 
@@ -266,6 +253,7 @@ public class Monster : MonoBehaviour
 
         public override void Update()
         {
+            Debug.Log("플레이어 쫓기");
             owner.agent.SetDestination(targetPos);
         }
     }
@@ -288,18 +276,19 @@ public class Monster : MonoBehaviour
         public override void Update()
         {
             owner.timer += Time.deltaTime;
-            Debug.Log("주위 감지 중...");
 
             if(owner.timer >= EndTime)
             {
                 owner.stateMachine.ChangeState(State.Patrol);
             }
+
+            Debug.Log("사주 경계 중...");
         }
 
         public override void Exit()
         {
+            Debug.Log("사주 경계 종료");
             owner.animator.SetBool(owner.hashLookAround, false);
-            Debug.Log($"주위 감지 종료");
             owner.timer = 0;
         }
     }
@@ -314,19 +303,17 @@ public class Monster : MonoBehaviour
             owner.state = State.Aiming;
 
             owner.agent.isStopped = true;
-            owner.animator.SetBool(owner.hashIdle, true);
-            owner.animator.SetBool(owner.hashWalk, false);
             owner.animator.SetBool(owner.hashIdle, false);
+            owner.animator.SetBool(owner.hashWalk, false);
             owner.animator.SetBool(owner.hashFind, true);
             owner.animator.SetBool(owner.hashAttack, false);
 
-            Debug.Log("조준...");
+            Debug.Log("플레이어 조준...");
         }
 
         public override void Update()
         {
             owner.timer += Time.deltaTime;
-            Debug.Log($"공격 딜레이 중...");
 
             if (owner.timer >= AttackDelay)
             {
@@ -340,11 +327,10 @@ public class Monster : MonoBehaviour
         public AttackState(Monster owner) : base(owner) { }
         public override void Enter()
         {
+            Debug.Log("공격!!");
             owner.timer = 0;
             owner.state = State.Attack;
             owner.animator.SetBool(owner.hashAttack, true);
-
-            Debug.Log("공격!!");
         }
     }
 
@@ -378,8 +364,6 @@ public class Monster : MonoBehaviour
             owner.animator.SetBool(owner.hashAttack, false);
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashHurt);
-
-            Debug.Log("공격받다.");
         }
     }
 
@@ -395,8 +379,6 @@ public class Monster : MonoBehaviour
             owner.animator.SetBool(owner.hashIdle, false);
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashDie);
-
-            Debug.Log("죽다.");
         }
     }
 }

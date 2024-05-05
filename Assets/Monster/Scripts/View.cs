@@ -15,6 +15,7 @@ public class View : MonoBehaviour
 
     public bool isFind {  get; private set; }
     public bool isAttackAble { get; private set; }
+    public bool RunSuccess { get; private set; }
 
     private NavMeshAgent agent;
 
@@ -28,6 +29,7 @@ public class View : MonoBehaviour
         isFind = false;
 
         agent = GetComponent<NavMeshAgent>();
+        RunSuccess = true;
     }
 
     // Update is called once per frame
@@ -67,6 +69,7 @@ public class View : MonoBehaviour
                     if (hit.transform.CompareTag("Player"))
                     {
                         isFind = true;
+                        RunSuccess = false;
                         this.target = hit.transform;
                         //agent.destination = hit.transform.position;
                         if(Vector3.Distance(transform.position, hit.transform.position) <= AttackDistance)
@@ -92,6 +95,7 @@ public class View : MonoBehaviour
         else
         {
             MissTarget();
+            RunSuccess = true;
         }
     }
 
