@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cinemachine;
 
 public enum PlayerStateName
 {
@@ -19,6 +20,11 @@ public class PlayerController : Singleton<PlayerController>
     public float moveSpeed;
     public bool isAssasing;
     public bool isGround = true;
+    public CinemachineVirtualCamera overView;
+    public CinemachineVirtualCamera aimView;
+    public GameObject aim;
+
+    public GameObject sss;
 
     [HideInInspector]
     public GameObject target;
@@ -37,12 +43,16 @@ public class PlayerController : Singleton<PlayerController>
     private Vector3 moveDirection;
     private Vector3 jumpDirection = new Vector3(0, 0, 0);
     private PlayerAttackType attackType = PlayerAttackType.NOMAL;
+    private Transform aaa;
 
     private float jumpForce = 3.0f;
     private float gravtyScale = -0.02f;
     private float attackTime;
     private float maxComboInputTime = 0.5f;
     private float attakingTime = 3.0f;
+    private float rootSpeed = 3.0f;
+    private float yRotate;
+    private float xRoatte;
     private int comboCount = 0;
     private bool isCrouching = false;
     private bool isJump = false;
@@ -54,13 +64,16 @@ public class PlayerController : Singleton<PlayerController>
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         characterController = GetComponent<CharacterController>();
         playerAnimator = GetComponent<Animator>();
         playerStateMachine = gameObject.AddComponent<StateMachine>();
+        overView.Priority = 10;
+        aimView.Priority = 0;
         playerStateMachine.AddState(PlayerStateName.IDLE, new IdleState(this));
         playerStateMachine.AddState(PlayerStateName.WALK, new WalkState(this));
         playerStateMachine.InitState(PlayerStateName.IDLE);
-
+        aaa = playerAnimator.GetBoneTransform(HumanBodyBones.Spine);
         leftHandAttackPos.SetActive(false);
         rightHandAttackPos.SetActive(false);
         jumpDirection.y = jumpForce;
@@ -69,6 +82,15 @@ public class PlayerController : Singleton<PlayerController>
     private void FixedUpdate()
     {
 
+    }
+
+    private void LateUpdate()
+    {
+        if (isAimming)
+        {
+            aaa.rotation = Quaternion.Euler(0f, 0, yRotate * rootSpeed);
+
+        }
     }
 
     // Update is called once per frame
@@ -85,6 +107,45 @@ public class PlayerController : Singleton<PlayerController>
         }
 
         AttackingTimeCheck();
+        MoveAssasingTarget();
+        PlayerRotate();
+        aimView.LookAt = aim.transform;
+    }
+
+    private void OnAimming()
+    {
+        if (isAimming)
+        {
+            overView.gameObject.SetActive(true);
+            aimView.gameObject.SetActive(false);
+            isAimming = false;
+        }
+        else
+        {
+            aimView.gameObject.SetActive(true);
+            overView.gameObject.SetActive(false);
+            isAimming = true;
+        }
+    }
+    private void CamaraChange()
+    {
+
+    }
+
+
+    private void PlayerRotate()
+    {
+        transform.Rotate(0f, Input.GetAxis("Mouse X") * rootSpeed, 0f);
+        yRotate += Input.GetAxis("Mouse Y") * rootSpeed;
+        yRotate = Mathf.Clamp(yRotate, 50, 100);
+        
+
+
+    }
+
+    private void PlayerYRoatate()
+    {
+
     }
 
     void OnCrouching()
@@ -121,9 +182,24 @@ public class PlayerController : Singleton<PlayerController>
 
     }
 
-    private void onAssasing()
+    private void OnAssasing()
     {
-        target.transform.position = assasingPos.transform.position;
+        if (isAssasing&&!isAttack)
+        {
+            attackType = PlayerAttackType.ASSASING;
+            isCrouching = false;
+            moveSpeed = 1.0f;
+            //애니세팅
+            //playerAnimator.SetLayerWeight(1, 1);
+            playerAnimator.SetBool("IsCrouching", false);
+            playerAnimator.SetTrigger("AssasingAttackStart");
+            //캐릭터 컨트롤러 콜리전 세팅 센터값 0 , 0.99 ,0
+            characterController.center = new Vector3(0, 0.99f, 0);
+            //높이 1.8
+            characterController.height = 1.8f;
+            target.gameObject.GetComponent<CapsuleCollider>().isTrigger = true;
+        }
+        
     }
 
     private void OnAttack()
@@ -135,6 +211,7 @@ public class PlayerController : Singleton<PlayerController>
                 NomalAttack();
                 break;
             case PlayerAttackType.ASSASING:
+                AssaingAttack();
                 break;
             case PlayerAttackType.AIMMING:
                 break;
@@ -142,17 +219,28 @@ public class PlayerController : Singleton<PlayerController>
 
     }
 
-
+    public void SetAssingAttackingAni()
+    {
+        playerAnimator.SetTrigger("AssasinAttacking");
+    }
+    private void MoveAssasingTarget()
+    {
+        if (attackType == PlayerAttackType.ASSASING)
+        {
+            target.transform.position = assasingPos.transform.position;
+        }
+    }
 
     private void AssaingAttack()
     {
-
+        playerAnimator.SetTrigger("AssasingAttackFinish");
+        attackType = PlayerAttackType.NOMAL;
     }
 
     private void NomalAttack()
     {
         isAttack = true;
-        playerAnimator.SetLayerWeight(1, 1);
+       // playerAnimator.SetLayerWeight(1, 1);
         playerAnimator.SetBool("IsAttack", true);
         attackTime = Time.time;
 
@@ -202,14 +290,14 @@ public class PlayerController : Singleton<PlayerController>
             isAttack = false;
             comboCount = 0;
             playerAnimator.SetBool("IsAttack", false);
-            playerAnimator.SetLayerWeight(1, 0);
+            //playerAnimator.SetLayerWeight(1, 0);
         }
 
     }
 
     private void OnJump()
     {
-        if (isGround)
+        if (isGround && !isAssasing)
         {
             isGround = false;
             playerAnimator.SetBool("IsGround", isGround);
@@ -219,9 +307,13 @@ public class PlayerController : Singleton<PlayerController>
 
     private void OnMove(InputValue input)
     {
-        Vector2 moveVector = input.Get<Vector2>();
-        moveDirection = new Vector3(moveVector.x, 0, moveVector.y);
-        playerStateMachine.ChangeState(PlayerStateName.WALK);
+        if(!isAssasingAttack)
+        {
+            Vector2 moveVector = input.Get<Vector2>();
+            moveDirection = new Vector3(moveVector.x, 0, moveVector.y);
+            playerStateMachine.ChangeState(PlayerStateName.WALK);
+        }
+        
     }
 
     private void SetAnimatorFloat(float Xvalue, float Zvalue)
@@ -275,7 +367,7 @@ public class PlayerController : Singleton<PlayerController>
 
         public override void Update()
         {
-            player.characterController.Move(player.moveDirection * player.moveSpeed * Time.deltaTime);
+            player.characterController.Move(player.transform.TransformDirection( player.moveDirection) * player.moveSpeed * Time.deltaTime);
             if (player.isGround)
             {
                 player.SetAnimatorFloat(player.moveDirection.x * player.moveSpeed, player.moveDirection.z * player.moveSpeed);
@@ -288,11 +380,6 @@ public class PlayerController : Singleton<PlayerController>
                 player.playerStateMachine.ChangeState(PlayerStateName.IDLE);
             }
         }
-    }
-
-    private class AssasingState : PlayerBaseState
-    {
-        public AssasingState(PlayerController player) : base(player) { }
     }
 
 }
