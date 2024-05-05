@@ -93,9 +93,12 @@ public class GunController : MonoBehaviour
             Random.Range(-crosshair.GetAccuracy() - gun.accuracy, crosshair.GetAccuracy() + gun.accuracy), 0f)
             , out hit, gun.range))
         {
-            GameObject clone = Instantiate(hit_effect_prefab, hit.point, Quaternion.LookRotation(hit.normal));
-            Debug.Log(hit.transform.name);
-            Destroy(clone, 2f);
+            if (hit.transform.CompareTag("Monster"))
+            {
+                GameObject clone = Instantiate(hit_effect_prefab, hit.point, Quaternion.LookRotation(hit.normal));
+                Debug.Log(hit.transform.name);
+                Destroy(clone, 2f);
+            }
         }
     }
 
