@@ -49,15 +49,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "Aimming",
-                    "type": "Button",
-                    "id": "193dcb75-d6ac-488c-963d-853fc3b185ca",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -157,17 +148,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Assasing",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "59374187-3f53-4c52-a0a9-b04b3eb0eca6",
-                    "path": "<Mouse>/rightButton",
-                    "interactions": "Press(behavior=2)",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aimming",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
