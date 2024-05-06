@@ -130,6 +130,7 @@ public class Monster : MonoBehaviour
         {
             if(Vector3.Distance(owner.transform.position, targetPos) < 0.1f)
             {
+
                 if(patrolPointIndex >= PatrolPoint.Count -1)
                 {
                     NextPatrolPointIndex = -1;
@@ -140,19 +141,28 @@ public class Monster : MonoBehaviour
                 }
 
                 patrolPointIndex += NextPatrolPointIndex;
-                targetPos = PatrolPoint[patrolPointIndex].position;
-
-                //ÁÖÀ§ µÑ·¯º¸´Â State·Î º¯°æ
-                owner.stateMachine.ChangeState(State.LookAround);
-            }
+                           
         }
 
         public override void FixedUpdate()
         {
+
+            Debug.Log("íŒ¨íŠ¸ë¡¤ ì¤‘...");
+
+            if (Vector3.Distance(owner.transform.position, targetPos) <= 0.2f)
+            {
+                ChangePatrolPoint();
+                //ì£¼ìœ„ ë‘˜ëŸ¬ë³´ëŠ” Stateë¡œ ë³€ê²½
+                owner.stateMachine.ChangeState(State.LookAround);
+            }
+            else
+            {
+                owner.agent.SetDestination(targetPos);
+            }            
             ChangePatrolPoint();
             owner.agent.SetDestination(targetPos);
 
-            Debug.Log("ÆÐÆ®·Ñ Áß...");
+            Debug.Log("íŒ¨íŠ¸ë¡¤ ì¤‘...");
         }
     }
 
@@ -170,6 +180,8 @@ public class Monster : MonoBehaviour
 
         public override void Update()
         {
+
+            //Debug.Log("í”Œë ˆì´ì–´ ì«“ê¸°");
             owner.agent.SetDestination(targetPos);
         }
     }
@@ -192,7 +204,7 @@ public class Monster : MonoBehaviour
         public override void Update()
         {
             owner.timer += Time.deltaTime;
-            Debug.Log("ÁÖÀ§ °¨Áö Áß...");
+            Debug.Log("ì£¼ìœ„ ê°ì§€ ì¤‘...");
 
             if(owner.timer >= EndTime)
             {
@@ -203,16 +215,47 @@ public class Monster : MonoBehaviour
         public override void Exit()
         {
             owner.animator.SetBool(owner.hashLookAround, false);
-            Debug.Log($"ÁÖÀ§ °¨Áö Á¾·á, Áö³­ ½Ã°£ : {owner.timer}, Á¾·á ÁöÁ¤ ½Ã°£ : {EndTime}");
+            Debug.Log($"ì£¼ìœ„ ê°ì§€ ì¢…ë£Œ, ì§€ë‚œ ì‹œê°„ : {owner.timer}, ì¢…ë£Œ ì§€ì • ì‹œê°„ : {EndTime}");
             owner.timer = 0;
         }
     }
 
+    private class AimingState : BaseMonstgerState
+    {
+        float AttackDelay = 1.5f;
+
+        public AimingState(Monster owner) : base(owner) { }
+        public override void Enter()
+        {
+            owner.state = State.Aiming;
+
+            owner.agent.isStopped = true;
+            owner.animator.SetBool(owner.hashIdle, false);
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashFind, true);
+            owner.animator.SetBool(owner.hashAttack, false);
+
+            //Debug.Log("í”Œë ˆì´ì–´ ì¡°ì¤€...");
+        }
+
+        public override void Update()
+        {
+            owner.timer += Time.deltaTime;
+
+            if (owner.timer >= AttackDelay)
+            {
+                owner.isAttack = true;
+            }
+        }       
+    }
     private class AttackState : BaseMonstgerState
     {
         public AttackState(Monster owner) : base(owner) { }
         public override void Enter()
         {
+
+            //Debug.Log("ê³µê²©!!");
+            owner.timer = 0;
             owner.state = State.Attack;
             //owner.animator.SetBool(owner.hashAttack, true);
         }
