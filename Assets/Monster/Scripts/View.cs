@@ -15,7 +15,6 @@ public class View : MonoBehaviour
 
     public bool isFind {  get; private set; }
     public bool isAttackAble { get; private set; }
-    public bool RunSuccess { get; private set; }
 
     private NavMeshAgent agent;
 
