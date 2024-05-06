@@ -387,10 +387,6 @@ AnimatorController:
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-<<<<<<< HEAD
-=======
-
->>>>>>> parent of 5a364f5 (Merge pull request #26 from Berry6753/psw)
     m_Controller: {fileID: 0}
   - m_Name: IsCrouching
     m_Type: 4
