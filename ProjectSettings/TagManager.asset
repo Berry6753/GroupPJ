@@ -5,12 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
-<<<<<<< HEAD
   - Monster
   - Dead
   - Boss
-=======
->>>>>>> parent of 8f76286 (0511)
   layers:
   - Default
   - TransparentFX
