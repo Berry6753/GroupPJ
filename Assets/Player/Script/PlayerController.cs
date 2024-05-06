@@ -230,6 +230,12 @@ public class PlayerController : Singleton<PlayerController>
         playerAnimator.SetFloat("Zspeed", Zvalue);
     }
 
+    public void GameOver()
+    {
+
+    }
+    
+
 
     private class PlayerBaseState : BaseState
     {
