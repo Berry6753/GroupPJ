@@ -156,12 +156,17 @@ public class Boss : MonoBehaviour
     private class PatrolState : BaseMonsterState
     {
         Vector3 point;
-        Vector3 MovePoint; 
+        Vector3 MovePoint;
+        bool isStop;
 
-        public PatrolState(Boss owner) : base(owner) { }
+        public PatrolState(Boss owner) : base(owner) 
+        {
+            point = owner.transform.position;
+        }
 
         public override void Enter()
         {
+            isStop = false;
             owner.state = State.Patrol;
             owner.agent.isStopped = false;
             owner.animator.SetBool(owner.hashWalk, true);
@@ -173,27 +178,36 @@ public class Boss : MonoBehaviour
             MovePoint = owner.transform.position;
             //point = MovePoint;
 
-            RandomPoint(owner.transform.position, 15f, out point);
+            while(!isStop)
+            {
+                if(RandomPoint(owner.transform.position, 15f, out MovePoint))
+                {
+                    point = MovePoint;
+                    isStop = true;
+                }
+            }
         }
 
-        private void RandomPoint(Vector3 center, float range, out Vector3 result)
+        private bool RandomPoint(Vector3 center, float range, out Vector3 result)
         {  
             Vector3 randPoint = center + Random.insideUnitSphere * range;
             NavMeshHit hit;
             if (NavMesh.SamplePosition(randPoint, out hit, 1.0f, NavMesh.AllAreas))
-            {
-                MovePoint = hit.position;
-                result = MovePoint;
+            {               
+                result = hit.position;
+                return true;
             }
 
-            result = MovePoint;
+            result = Vector3.zero;
+            return false;
         }
 
         public override void FixedUpdate()
         {
-            //Debug.Log("패트롤 중...");           
+            Debug.Log("패트롤 중...");
 
-            if (owner.agent.remainingDistance <= owner.agent.stoppingDistance)
+            Debug.Log($"목적지 : {point}");
+            if (Vector3.Distance(owner.transform.position, point) <= 0.5f)
             {
                 //RandomPoint(owner.transform.position, 5f, out point);
                 owner.stateMachine.ChangeState(State.LookAround);
@@ -225,7 +239,7 @@ public class Boss : MonoBehaviour
 
         public override void FixedUpdate()
         {
-            //Debug.Log("도망 중...");
+            Debug.Log("도망 중...");
             RunDir = new Vector3(owner.BossSight.target.position.x - owner.transform.position.x, 0, owner.BossSight.target.position.z - owner.transform.position.z).normalized;
             owner.agent.SetDestination(owner.transform.position - RunDir * 5f);
 
@@ -262,11 +276,16 @@ public class Boss : MonoBehaviour
         {
             if (owner.isRunner)
             {
+                EndTime = 4f;
                 owner.transform.rotation = Quaternion.Lerp(owner.transform.rotation, this.newRotation, 2f * Time.deltaTime);
-            }            
+            }
+            else
+            {
+                EndTime = 2f;
+            }
 
             owner.timer += Time.deltaTime;
-            //Debug.Log("주위 감지 중...");
+            Debug.Log("주위 감지 중...");
 
             if (owner.timer >= EndTime)
             {
@@ -278,7 +297,7 @@ public class Boss : MonoBehaviour
         public override void Exit()
         {
             owner.animator.SetBool(owner.hashLookAround, false);
-            //Debug.Log($"주위 감지 종료");
+            Debug.Log($"주위 감지 종료");
             owner.timer = 0;
         }
     }
@@ -311,7 +330,7 @@ public class Boss : MonoBehaviour
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashHurt);
 
-            //Debug.Log("공격받다.");
+            Debug.Log("공격받다.");
         }
     }
 
@@ -328,7 +347,7 @@ public class Boss : MonoBehaviour
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashDie);
 
-            //Debug.Log("죽다.");
+            Debug.Log("죽다.");
             owner.state = State.Die;
         }
     }

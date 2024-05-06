@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.UI.GridLayoutGroup;
 
 public class Monster : MonoBehaviour
 {
@@ -11,7 +12,10 @@ public class Monster : MonoBehaviour
         Patrol,
         Trace,
         LookAround,
+        Aiming,
         Attack,
+        Assassinated,
+        Hurt,
         Die
     }
 
@@ -19,35 +23,70 @@ public class Monster : MonoBehaviour
 
     private Animator animator;
     private NavMeshAgent agent;
-    private StateMachine stateMachine;
-
-    [SerializeField]
-    private List<Transform> PatrolPoint;
+    public StateMachine stateMachine;
 
     private View monsterSight;
 
     private readonly int hashWalk = Animator.StringToHash("Move");
     private readonly int hashLookAround = Animator.StringToHash("LookAround");
+    private readonly int hashAttack = Animator.StringToHash("Attack");
+    private readonly int hashFind = Animator.StringToHash("isFind");
+    private readonly int hashHurt = Animator.StringToHash("Hurt");
+    private readonly int hashIdle = Animator.StringToHash("Idle");
+    private readonly int hashAmbushe = Animator.StringToHash("Ambushed");
+    private readonly int hashBackWard = Animator.StringToHash("BackWard");
+    private readonly int hashDie = Animator.StringToHash("Die");
 
     private float timer;
 
+    private bool isAttack;
+    public bool isAmbushed;
+    private bool isHurt;
     private bool isDead;
+
+    [Header("∏ÛΩ∫≈Õ¿« √º∑¬")]
+    [SerializeField]
+    private float HP = 100f;
+
+    [Space(10)]
+    [Header("ªÁøÎ«“ √—±‚")]
+    [SerializeField]
+    private Transform EquipedGun;
+
+    [Space(10)]
+    [Header("∆–∆Æ∑—«“ ∆˜¿Œ∆Æ")]
+    [SerializeField]
+    private Transform PatrolPointGroup;
+
+    private List<Transform> PatrolPoint;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
-
         monsterSight = GetComponent<View>();
+
+        PatrolPoint = new List<Transform>();
+
+        for (int i = 0; i < PatrolPointGroup.childCount; i++)
+        {
+            PatrolPoint.Add(PatrolPointGroup.GetChild(i));
+        }
 
         stateMachine = gameObject.AddComponent<StateMachine>();
         stateMachine.AddState(State.Idle, new IdleState(this));
         stateMachine.AddState(State.Patrol, new PatrolState(this, PatrolPoint));
         stateMachine.AddState(State.Trace, new TraceState(this));
         stateMachine.AddState(State.LookAround, new LookAroundState(this));
+        stateMachine.AddState(State.Aiming, new AimingState(this));
         stateMachine.AddState(State.Attack, new AttackState(this));
+        stateMachine.AddState(State.Assassinated, new AssassinatedState(this));
+        stateMachine.AddState(State.Hurt, new HurtState(this));
+        stateMachine.AddState(State.Die, new DieState(this));
 
         stateMachine.InitState(State.Idle);
+
+        isAmbushed = false;
     }
 
     private void Start()
@@ -59,31 +98,71 @@ public class Monster : MonoBehaviour
     {
         while (!isDead)
         {
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.3f);            
 
-            if (state == State.Die)
+            if (isHurt)
             {
-                stateMachine.ChangeState(State.Die);
-                yield break;
+                continue;
             }
-
-            if (monsterSight.isAttackAble)
+            else if (isAmbushed)
+            {
+                stateMachine.ChangeState(State.Assassinated);
+            }
+            else if (isAttack)
             {
                 stateMachine.ChangeState(State.Attack);
+            }
+            else if (monsterSight.isAttackAble)
+            {
+                stateMachine.ChangeState(State.Aiming);
             }
             else if (monsterSight.isFind)
             {
                 stateMachine.ChangeState(State.Trace);
             }
-            //else if(state == State.LookAround)
-            //{
-            //    stateMachine.ChangeState(State.LookAround);
-            //}
             else if(state != State.LookAround)
             {
                 stateMachine.ChangeState(State.Patrol);
             }
         }
+
+        stateMachine.ChangeState(State.Die);
+        yield break;
+    }
+
+    private void Update()
+    {
+        //«√∑π¿ÃæÓ∏¶ πŸ∂Û∫∏∏Á »∏¿¸
+        if (monsterSight.isAttackAble)
+        {
+            Quaternion newRotation = Quaternion.LookRotation((monsterSight.target.transform.position - transform.position).normalized);
+            transform.rotation = Quaternion.Lerp(transform.rotation, newRotation, 2f * Time.deltaTime);
+        }
+    }
+
+    //Attack Animation Method..
+    private void AttackEnd()
+    {
+        isAttack = false;
+    }
+
+    //Hurt
+    private void Hurt(float Damage)
+    {
+        this.HP -= Damage;
+        if(HP <=0 || isAmbushed)
+        {
+            isDead = true;
+        }
+        else
+        {
+            stateMachine.ChangeState(State.Hurt);
+        }
+    }
+
+    private void HurtEnd()
+    {
+        isHurt = false;
     }
 
     private class BaseMonstgerState : BaseState
@@ -101,9 +180,10 @@ public class Monster : MonoBehaviour
             owner.state = State.Idle;
             owner.agent.isStopped = true;
             owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashIdle, true);
         }
     }
-
+    
     private class PatrolState : BaseMonstgerState
     {
         List<Transform> PatrolPoint;
@@ -121,16 +201,17 @@ public class Monster : MonoBehaviour
         {
             owner.state = State.Patrol;
             owner.agent.isStopped = false;
+            owner.animator.SetBool(owner.hashIdle, true);
             owner.animator.SetBool(owner.hashWalk, true);
-            
+            owner.animator.SetBool(owner.hashFind, false);
+
             targetPos = PatrolPoint[patrolPointIndex].position;
         }
 
         private void ChangePatrolPoint()
         {
-            if(Vector3.Distance(owner.transform.position, targetPos) < 0.1f)
+            if(Vector3.Distance(owner.transform.position, targetPos) <= 0.2f)
             {
-
                 if(patrolPointIndex >= PatrolPoint.Count -1)
                 {
                     NextPatrolPointIndex = -1;
@@ -141,28 +222,18 @@ public class Monster : MonoBehaviour
                 }
 
                 patrolPointIndex += NextPatrolPointIndex;
-                           
+                targetPos = PatrolPoint[patrolPointIndex].position;
+
+                //¡÷¿ß µ—∑Ø∫∏¥¬ State∑Œ ∫Ø∞Ê
+                owner.stateMachine.ChangeState(State.LookAround);
+            }
         }
 
         public override void FixedUpdate()
         {
-
-            Debug.Log("Ìå®Ìä∏Î°§ Ï§ë...");
-
-            if (Vector3.Distance(owner.transform.position, targetPos) <= 0.2f)
-            {
-                ChangePatrolPoint();
-                //Ï£ºÏúÑ ÎëòÎü¨Î≥¥Îäî StateÎ°ú Î≥ÄÍ≤Ω
-                owner.stateMachine.ChangeState(State.LookAround);
-            }
-            else
-            {
-                owner.agent.SetDestination(targetPos);
-            }            
+            //Debug.Log("∆–∆Æ∑— ¡ﬂ...");
             ChangePatrolPoint();
             owner.agent.SetDestination(targetPos);
-
-            Debug.Log("Ìå®Ìä∏Î°§ Ï§ë...");
         }
     }
 
@@ -175,13 +246,14 @@ public class Monster : MonoBehaviour
             owner.state = State.Trace;
             targetPos = owner.monsterSight.target.position;
             owner.agent.isStopped = false;
+            owner.animator.SetBool(owner.hashIdle, true);
             owner.animator.SetBool(owner.hashWalk, true);
+            owner.animator.SetBool(owner.hashFind, true);
         }
 
         public override void Update()
         {
-
-            //Debug.Log("ÌîåÎ†àÏù¥Ïñ¥ Ï´ìÍ∏∞");
+            //Debug.Log("«√∑π¿ÃæÓ ¬—±‚");
             owner.agent.SetDestination(targetPos);
         }
     }
@@ -204,18 +276,19 @@ public class Monster : MonoBehaviour
         public override void Update()
         {
             owner.timer += Time.deltaTime;
-            Debug.Log("Ï£ºÏúÑ Í∞êÏßÄ Ï§ë...");
 
             if(owner.timer >= EndTime)
             {
                 owner.stateMachine.ChangeState(State.Patrol);
             }
+
+            //Debug.Log("ªÁ¡÷ ∞Ê∞Ë ¡ﬂ...");
         }
 
         public override void Exit()
         {
+            //Debug.Log("ªÁ¡÷ ∞Ê∞Ë ¡æ∑·");
             owner.animator.SetBool(owner.hashLookAround, false);
-            Debug.Log($"Ï£ºÏúÑ Í∞êÏßÄ Ï¢ÖÎ£å, ÏßÄÎÇú ÏãúÍ∞Ñ : {owner.timer}, Ï¢ÖÎ£å ÏßÄÏ†ï ÏãúÍ∞Ñ : {EndTime}");
             owner.timer = 0;
         }
     }
@@ -235,7 +308,7 @@ public class Monster : MonoBehaviour
             owner.animator.SetBool(owner.hashFind, true);
             owner.animator.SetBool(owner.hashAttack, false);
 
-            //Debug.Log("ÌîåÎ†àÏù¥Ïñ¥ Ï°∞Ï§Ä...");
+            //Debug.Log("«√∑π¿ÃæÓ ¡∂¡ÿ...");
         }
 
         public override void Update()
@@ -248,16 +321,64 @@ public class Monster : MonoBehaviour
             }
         }       
     }
+
     private class AttackState : BaseMonstgerState
     {
         public AttackState(Monster owner) : base(owner) { }
         public override void Enter()
         {
-
-            //Debug.Log("Í≥µÍ≤©!!");
+            //Debug.Log("∞¯∞›!!");
             owner.timer = 0;
             owner.state = State.Attack;
-            //owner.animator.SetBool(owner.hashAttack, true);
+            owner.animator.SetBool(owner.hashAttack, true);
+        }
+    }
+
+    private class AssassinatedState : BaseMonstgerState
+    {
+        public AssassinatedState(Monster owner) : base(owner) { }
+        public override void Enter()
+        {
+            owner.state = State.Assassinated;
+            owner.agent.isStopped = true;
+
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashIdle, false);
+            //∞¯∞› πﬁ¥¬ æ÷¥œ∏ﬁ¿Ãº«
+            owner.animator.SetBool(owner.hashAmbushe, true);
+        }
+    }
+
+    private class HurtState : BaseMonstgerState
+    {
+        public HurtState(Monster owner) : base(owner) { }
+        public override void Enter()
+        {
+            owner.state = State.Hurt;
+            owner.agent.isStopped = true;
+            owner.isHurt = true;
+
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashIdle, false);
+            owner.animator.SetBool(owner.hashFind, false);
+            owner.animator.SetBool(owner.hashAttack, false);
+            //∞¯∞› πﬁ¥¬ æ÷¥œ∏ﬁ¿Ãº«
+            owner.animator.SetTrigger(owner.hashHurt);
+        }
+    }
+
+    private class DieState : BaseMonstgerState
+    {
+        public DieState(Monster owner) : base(owner) { }
+        public override void Enter()
+        {
+            owner.agent.isStopped = true;
+            owner.transform.tag = "Dead";
+
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashIdle, false);
+            //∞¯∞› πﬁ¥¬ æ÷¥œ∏ﬁ¿Ãº«
+            owner.animator.SetTrigger(owner.hashDie);
         }
     }
 }
