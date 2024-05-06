@@ -20,7 +20,6 @@ public class Singleton<T> : MonoBehaviour where T :MonoBehaviour
                 {
                     GameObject singletonObject = new GameObject();
                     instance = singletonObject.AddComponent<T>();
-
                     DontDestroyOnLoad(singletonObject);//씬이 변경되더라도 해당오브젝트를 없애지않음
                 }
             }
