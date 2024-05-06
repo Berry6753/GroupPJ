@@ -210,8 +210,7 @@ public class Monster : MonoBehaviour
 
         private void ChangePatrolPoint()
         {
-            if(owner.agent.remainingDistance <= owner.agent.stoppingDistance)
-            {
+
                 if(patrolPointIndex >= PatrolPoint.Count -1)
                 {
                     NextPatrolPointIndex = -1;
@@ -222,18 +221,23 @@ public class Monster : MonoBehaviour
                 }
 
                 patrolPointIndex += NextPatrolPointIndex;
-                targetPos = PatrolPoint[patrolPointIndex].position;
-
-                //주위 둘러보는 State로 변경
-                owner.stateMachine.ChangeState(State.LookAround);
-            }
+                           
         }
 
         public override void FixedUpdate()
         {
-            //Debug.Log("패트롤 중...");
-            ChangePatrolPoint();
-            owner.agent.SetDestination(targetPos);
+            Debug.Log("패트롤 중...");
+
+            if (Vector3.Distance(owner.transform.position, targetPos) <= 0.2f)
+            {
+                ChangePatrolPoint();
+                //주위 둘러보는 State로 변경
+                owner.stateMachine.ChangeState(State.LookAround);
+            }
+            else
+            {
+                owner.agent.SetDestination(targetPos);
+            }            
         }
     }
 
@@ -282,12 +286,12 @@ public class Monster : MonoBehaviour
                 owner.stateMachine.ChangeState(State.Patrol);
             }
 
-            //Debug.Log("사주 경계 중...");
+            Debug.Log("사주 경계 중...");
         }
 
         public override void Exit()
         {
-            //Debug.Log("사주 경계 종료");
+            Debug.Log("사주 경계 종료");
             owner.animator.SetBool(owner.hashLookAround, false);
             owner.timer = 0;
         }

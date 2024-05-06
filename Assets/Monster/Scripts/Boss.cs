@@ -191,12 +191,9 @@ public class Boss : MonoBehaviour
 
         public override void FixedUpdate()
         {
-            Debug.Log("패트롤 중...");           
+            //Debug.Log("패트롤 중...");           
 
-            Debug.Log($"위치 : {owner.transform.position}, 이동 포인트 : {point}");
-            Debug.Log($"남은 거리 : {owner.agent.remainingDistance}");
-
-            if (owner.agent.remainingDistance <= 0.5f)
+            if (owner.agent.remainingDistance <= owner.agent.stoppingDistance)
             {
                 //RandomPoint(owner.transform.position, 5f, out point);
                 owner.stateMachine.ChangeState(State.LookAround);
@@ -228,7 +225,7 @@ public class Boss : MonoBehaviour
 
         public override void FixedUpdate()
         {
-            Debug.Log("도망 중...");
+            //Debug.Log("도망 중...");
             RunDir = new Vector3(owner.BossSight.target.position.x - owner.transform.position.x, 0, owner.BossSight.target.position.z - owner.transform.position.z).normalized;
             owner.agent.SetDestination(owner.transform.position - RunDir * 5f);
 
@@ -269,7 +266,7 @@ public class Boss : MonoBehaviour
             }            
 
             owner.timer += Time.deltaTime;
-            Debug.Log("주위 감지 중...");
+            //Debug.Log("주위 감지 중...");
 
             if (owner.timer >= EndTime)
             {
@@ -281,7 +278,7 @@ public class Boss : MonoBehaviour
         public override void Exit()
         {
             owner.animator.SetBool(owner.hashLookAround, false);
-            Debug.Log($"주위 감지 종료");
+            //Debug.Log($"주위 감지 종료");
             owner.timer = 0;
         }
     }
@@ -314,7 +311,7 @@ public class Boss : MonoBehaviour
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashHurt);
 
-            Debug.Log("공격받다.");
+            //Debug.Log("공격받다.");
         }
     }
 
@@ -331,7 +328,7 @@ public class Boss : MonoBehaviour
             //공격 받는 애니메이션
             owner.animator.SetTrigger(owner.hashDie);
 
-            Debug.Log("죽다.");
+            //Debug.Log("죽다.");
             owner.state = State.Die;
         }
     }
