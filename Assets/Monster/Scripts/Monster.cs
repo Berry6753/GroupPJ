@@ -210,7 +210,7 @@ public class Monster : MonoBehaviour
 
         private void ChangePatrolPoint()
         {
-            if(Vector3.Distance(owner.transform.position, targetPos) < 0.5f)
+            if(owner.agent.remainingDistance <= owner.agent.stoppingDistance)
             {
                 if(patrolPointIndex >= PatrolPoint.Count -1)
                 {
@@ -231,7 +231,7 @@ public class Monster : MonoBehaviour
 
         public override void FixedUpdate()
         {
-            Debug.Log("패트롤 중...");
+            //Debug.Log("패트롤 중...");
             ChangePatrolPoint();
             owner.agent.SetDestination(targetPos);
         }
@@ -253,7 +253,7 @@ public class Monster : MonoBehaviour
 
         public override void Update()
         {
-            Debug.Log("플레이어 쫓기");
+            //Debug.Log("플레이어 쫓기");
             owner.agent.SetDestination(targetPos);
         }
     }
@@ -282,12 +282,12 @@ public class Monster : MonoBehaviour
                 owner.stateMachine.ChangeState(State.Patrol);
             }
 
-            Debug.Log("사주 경계 중...");
+            //Debug.Log("사주 경계 중...");
         }
 
         public override void Exit()
         {
-            Debug.Log("사주 경계 종료");
+            //Debug.Log("사주 경계 종료");
             owner.animator.SetBool(owner.hashLookAround, false);
             owner.timer = 0;
         }
@@ -308,7 +308,7 @@ public class Monster : MonoBehaviour
             owner.animator.SetBool(owner.hashFind, true);
             owner.animator.SetBool(owner.hashAttack, false);
 
-            Debug.Log("플레이어 조준...");
+            //Debug.Log("플레이어 조준...");
         }
 
         public override void Update()
@@ -327,7 +327,7 @@ public class Monster : MonoBehaviour
         public AttackState(Monster owner) : base(owner) { }
         public override void Enter()
         {
-            Debug.Log("공격!!");
+            //Debug.Log("공격!!");
             owner.timer = 0;
             owner.state = State.Attack;
             owner.animator.SetBool(owner.hashAttack, true);

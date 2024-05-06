@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.UI.GridLayoutGroup;
 
 public class Boss : MonoBehaviour
 {
@@ -38,6 +39,7 @@ public class Boss : MonoBehaviour
 
     private bool isAmbushed;
     private bool isHurt;
+    private bool isRunner;
     private bool isDead;
 
     [Header("보스의 체력")]
@@ -86,10 +88,6 @@ public class Boss : MonoBehaviour
             else if (!BossSight.RunSuccess)
             {
                 stateMachine.ChangeState(State.Run);
-            }
-            else if (state != State.LookAround)
-            {
-                stateMachine.ChangeState(State.Patrol);
             }
         }
 
@@ -150,11 +148,16 @@ public class Boss : MonoBehaviour
 
             owner.agent.speed = 3.5f;
             owner.agent.angularSpeed = 130f;
+
+            owner.stateMachine.ChangeState(State.Patrol);
         }
     }
 
     private class PatrolState : BaseMonsterState
     {
+        Vector3 point;
+        Vector3 MovePoint; 
+
         public PatrolState(Boss owner) : base(owner) { }
 
         public override void Enter()
@@ -166,33 +169,42 @@ public class Boss : MonoBehaviour
 
             owner.agent.speed = 3.5f;
             owner.agent.angularSpeed = 130f;
+
+            MovePoint = owner.transform.position;
+            //point = MovePoint;
+
+            RandomPoint(owner.transform.position, 15f, out point);
         }
 
-        private bool RandomPoint(Vector3 center, float range, out Vector3 result)
-        {
+        private void RandomPoint(Vector3 center, float range, out Vector3 result)
+        {  
             Vector3 randPoint = center + Random.insideUnitSphere * range;
             NavMeshHit hit;
             if (NavMesh.SamplePosition(randPoint, out hit, 1.0f, NavMesh.AllAreas))
             {
-                result = hit.position;
-                return true;
+                MovePoint = hit.position;
+                result = MovePoint;
             }
 
-            result = Vector3.zero;
-            return false;
+            result = MovePoint;
         }
 
         public override void FixedUpdate()
         {
-            if(owner.agent.remainingDistance <= owner.agent.stoppingDistance)
-            {
-                Vector3 point;
-                if(RandomPoint(owner.transform.position, 5f, out point))
-                {
-                    owner.agent.SetDestination(point);
-                }
-            }
+            Debug.Log("패트롤 중...");           
 
+            Debug.Log($"위치 : {owner.transform.position}, 이동 포인트 : {point}");
+            Debug.Log($"남은 거리 : {owner.agent.remainingDistance}");
+
+            if (owner.agent.remainingDistance <= 0.5f)
+            {
+                //RandomPoint(owner.transform.position, 5f, out point);
+                owner.stateMachine.ChangeState(State.LookAround);
+            }
+            else
+            {
+                owner.agent.SetDestination(point);
+            }
         }
     }
 
@@ -204,41 +216,64 @@ public class Boss : MonoBehaviour
         {
             owner.state = State.Run;
             owner.agent.isStopped = false;
+            owner.isRunner = true;
             owner.animator.SetBool(owner.hashWalk, true);
             owner.animator.SetBool(owner.hashFind, true);
 
             owner.agent.speed = 8f;
             owner.agent.angularSpeed = 200f;
+
+            owner.isRunner = true;
         }
 
-        public override void Update()
+        public override void FixedUpdate()
         {
+            Debug.Log("도망 중...");
             RunDir = new Vector3(owner.BossSight.target.position.x - owner.transform.position.x, 0, owner.BossSight.target.position.z - owner.transform.position.z).normalized;
             owner.agent.SetDestination(owner.transform.position - RunDir * 5f);
+
+            if (owner.BossSight.RunSuccess)
+            {
+                owner.stateMachine.ChangeState(State.LookAround);
+            }
         }
+
     }
 
     private class LookAroundState : BaseMonsterState
     {
-        float EndTime;
+        float EndTime = 2f;
+
+        Quaternion newRotation;
         public LookAroundState(Boss owner) : base(owner) { }
         public override void Enter()
         {
-            EndTime = Random.Range(3f, 6f);
-
             owner.state = State.LookAround;
             owner.agent.isStopped = true;
+
+            owner.animator.SetBool(owner.hashWalk, false);
+            owner.animator.SetBool(owner.hashFind, false);
             owner.animator.SetBool(owner.hashLookAround, true);
 
+            if (owner.isRunner)
+            {
+                newRotation = Quaternion.LookRotation((owner.BossSight.target.transform.position - owner.transform.position).normalized);
+            }
         }
 
         public override void Update()
         {
+            if (owner.isRunner)
+            {
+                owner.transform.rotation = Quaternion.Lerp(owner.transform.rotation, this.newRotation, 2f * Time.deltaTime);
+            }            
+
             owner.timer += Time.deltaTime;
             Debug.Log("주위 감지 중...");
 
             if (owner.timer >= EndTime)
             {
+                owner.isRunner = false;
                 owner.stateMachine.ChangeState(State.Patrol);
             }
         }
@@ -252,7 +287,6 @@ public class Boss : MonoBehaviour
     }
 
     private class AssassinatedState : BaseMonsterState
-
     {
         public AssassinatedState(Boss owner) : base(owner) { }
         public override void Enter()
